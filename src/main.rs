@@ -49,6 +49,25 @@ fn handle_connection(mut stream: TcpStream) {
     }
 }
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() != 2 {
+        eprintln!("Usage: cargo run <num_requests>");
+        return;
+    }
+
+    let num_requests: usize = match args[1].parse() {
+        Ok(n) => {
+            assert!(n > 0);
+            println!("Server will only serve {} requests", n);
+            n
+        },
+        Err(_) => {
+            eprintln!("Please provide a valid number for num_requests");
+            return;
+        }
+    };
+    
+
     let listener = match TcpListener::bind("127.0.0.1:8080") {
         Ok(listener) => listener,
         Err(e) => {
@@ -59,7 +78,7 @@ fn main() {
     let pool = ThreadPool::new(4);
 
     // only serve 2 requests before shutting down
-    for stream in listener.incoming().take(2) {
+    for stream in listener.incoming().take(num_requests) {
         let stream = stream.unwrap();
         pool.execute(|| {
             handle_connection(stream);

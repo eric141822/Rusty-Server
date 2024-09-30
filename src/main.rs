@@ -75,9 +75,19 @@ fn main() {
             return;
         }
     };
-    let pool = ThreadPool::new(4);
 
-    // only serve 2 requests before shutting down
+    // let pool = ThreadPool::new(4);
+
+    let pool = match ThreadPool::build(4) {
+        Ok(pool) => pool,
+        Err(e) => {
+            eprintln!("{:?}", e);
+            return;
+        }
+    };
+    
+
+    // only serve 'num_request' requests before shutting down
     for stream in listener.incoming().take(num_requests) {
         let stream = stream.unwrap();
         pool.execute(|| {
